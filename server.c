@@ -20,6 +20,7 @@ int         error=0;
 TaskHandle  taskHandle=0;
 char        errBuff[2048]={'\0'};
 float64     data[3] = {0.004,0.020,0.012};
+int 	    airOff = 0;
 
 void Die(char *mess) { perror(mess); exit(1); }
 void HandleClient(int sock);
@@ -140,6 +141,9 @@ void HandleClient(int sock) {
 	  printf(" Data Captured: %d\n", received);
 	  
 	  print_jPacket(&packet);
+
+	  //determine if joystick button was pressed to turn off air
+	  airOff = packet.d2;
 	  
   	  process_data(&packet);
 	
@@ -220,13 +224,18 @@ void drivePosition (float left, float right, float rudder) {
 	//As such, center position is 12mA. Add or
 	//subtract from there based on a percentage
 	//of the +/- 8mA span.
-	leftmA = (left/100.0) * 4 + 8;
-	rightmA = (-right/100.0) * 3 + 9.6;
-	ruddermA = (-rudder/100.0) * 2.5 + 7.5;
+	leftmA = (left/100.0) * 2.8 + 10.5;
+	rightmA = (-right/100.0) * 2 + 12;
+	ruddermA = (-rudder/100.0) * 4 + 9;
 
 	data[0] = leftmA/1000;
 	data[1] = rightmA/1000;
 	data[2] = ruddermA/1000;
+
+	if(airOff)
+	{
+		data[0] = data[1] = data[2] = 0;
+	}
 
 	// DAQmx Write Code
 	//   Samples per channel: 1

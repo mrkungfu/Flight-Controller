@@ -17,7 +17,7 @@ unsigned int FC_Sequence = 0;
 
 void Die(char *mess) { perror(mess); exit(1); }
 void initPacket (struct joystickPacket *packet);
-int buildPacket (struct joystickPacket *packet);
+int buildPacket (struct joystickPacket *packet, struct position *joystick_pos);
 int sendPacket (int socket, struct joystickPacket *packet);
 
 int main (int argc, char *argv[]) {
@@ -107,6 +107,11 @@ int main (int argc, char *argv[]) {
 			joystick_pos.z = axis[2];
 		}
 
+		if( js.number == 3 )
+			joystick_pos.z = 1;
+		else
+			joystick_pos.z = 0;
+
 		num_packets++;				
 		
 		printf("   number packets: %d\r",num_packets);
@@ -120,7 +125,7 @@ int main (int argc, char *argv[]) {
 		            sizeof(echoserver)) < 0) {
 		  Die("1Failed to connect with server");
 		}
-		buildPacket(&currentData, &joystick_pos)
+		buildPacket(&currentData, &joystick_pos);
 		sendPacket(sock, &currentData);
 		close(sock);
 	}
@@ -151,7 +156,7 @@ int sendPacket (int socket, struct joystickPacket *packet) {
 	);
 	
 	unsigned int count = strlen(&buff[4]) + 4;
-	printf("Count: %u\nBuff: %s\n\n", count, &buff[4]);
+	printf("\nCount: %u\nBuff: %s\n\n", count, &buff[4]);
 	char length[5];
 	snprintf(length, 5, "%04u", count); //zero padded
 	buff[0] = length[0];
@@ -168,7 +173,6 @@ int sendPacket (int socket, struct joystickPacket *packet) {
 
 int buildPacket (struct joystickPacket *packet, struct position *joystick_pos) {
 	struct timeval timestamp;
-	struct position joystick_pos;
 	
 	initPacket(packet);
 	gettimeofday(&timestamp, NULL);
