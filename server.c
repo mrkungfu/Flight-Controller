@@ -35,13 +35,21 @@ int main(int argc, char *argv[]) {
 	
 	struct timeval clockt1, clockt2, clockd;
 
-	// DAQmx Configure Code
+	// DAQmx Configure Code - ao22 was ao16
 	//   Setup task and create three virtual channels
 	//   for left and right elevons and the rudder
 	//   Range: 0-2mA
+	//
+	// Dev2 is determined by...
+	//
+	// Pinout (NI PXI-6704):
+	//   ao22: (+) 58, (-) 59
+	//   ao18: (+) 64, (-) 65
+	//   ao20: (+) 61, (-) 62
+	// http://www.ni.com/pdf/manuals/372110d.pdf
 	DAQmxErrChk (DAQmxCreateTask("",&taskHandle));
 	DAQmxErrChk (DAQmxCreateAOCurrentChan(taskHandle,
-					"Dev2/ao16,Dev2/ao18,Dev2/ao20",
+					"Dev2/ao22,Dev2/ao18,Dev2/ao20",
 					"left,right,rudder",
 					0.0,
 					0.02,
@@ -224,9 +232,9 @@ void drivePosition (float left, float right, float rudder) {
 	//As such, center position is 12mA. Add or
 	//subtract from there based on a percentage
 	//of the +/- 8mA span.
-	leftmA = (left/100.0) * 2.8 + 10.5;
-	rightmA = (-right/100.0) * 2 + 12;
-	ruddermA = (-rudder/100.0) * 4 + 9;
+	leftmA = (left/100.0) * 2.4 + 12;
+	rightmA = (-right/100.0) * 2.4 + 12;
+	ruddermA = (-rudder/100.0) * 4 + 12;//was 9
 
 	data[0] = leftmA/1000;
 	data[1] = rightmA/1000;
